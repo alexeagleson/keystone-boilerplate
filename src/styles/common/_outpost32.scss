@@ -1,0 +1,15 @@
+.objectInfoTooltip {
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background-color: $BLACK;
+  border: 2px solid $BLUE;
+  border-radius: 5px;
+}
+
+.strokeme {
+  color: white;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
