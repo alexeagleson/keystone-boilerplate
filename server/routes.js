@@ -10,6 +10,9 @@ const distPath = path.join(__dirname, '..', 'dist');
 const secret = process.env.JWT_SECRET;
 const saltRounds = 10;
 
+var keystone = require('keystone');
+var Event = keystone.list('Event');
+
 class SQLHandler {
   constructor(databaseConfig) {
     this.config = databaseConfig;
@@ -55,6 +58,7 @@ class App {
     this.express.use(express.static(distPath));
     this.express.use(bodyParser.json());
     this.express.use(bodyParser.urlencoded({ extended: true }));
+    this.express.set('views', path.join(__dirname, 'templates', 'views')); 
   }
 
   mountRoutes() {
@@ -69,7 +73,7 @@ class App {
             password char(60) NOT NULL,
             PRIMARY KEY (id)
           )`,
-        (formError) => {
+        formError => {
           if (typeof formError === 'string') {
             return res.header('x-auth', 'error').send({ error: formError });
           }
@@ -83,14 +87,55 @@ class App {
         [req.query.username],
         (error, userResult) => {
           if (userResult.length > 0 && req.query.admin !== 'false') {
-            res.status(200).header('x-auth', 'success').send({});
+            res
+              .status(200)
+              .header('x-auth', 'success')
+              .send({});
           } else {
-            res.status(401).header('x-auth', 'error').send({
-              error: 'User verification failed.',
-            });
+            res
+              .status(401)
+              .header('x-auth', 'error')
+              .send({
+                error: 'User verification failed.',
+              });
           }
         }
       );
+    });
+
+    router.get('/index', (req, res) => {
+      res.render('index');
+    });
+
+
+
+    router.get('/add-event', (req, res) => {
+      var view = new keystone.View(req, res);
+      var locals = res.locals;
+
+      // Init locals
+      locals.section = 'event';
+      locals.filters = {
+        post: req.params.post,
+      };
+
+      // Load events
+      view.on('init', function(next) {
+        // var q = Event.model.find().where('name').sort('-publishDate').limit(4);
+
+        var q = Event.model.find();
+
+        q.exec(function(err, results) {
+          console.log(results);
+          locals.posts = results;
+          next(err);
+        });
+      });
+
+      console.log(keystone);
+
+      // Render the view
+      view.render('addEvent');
     });
 
     router.post('/login', (req, res) => {
