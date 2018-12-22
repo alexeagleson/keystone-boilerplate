@@ -126,13 +126,10 @@ class App {
         var q = Event.model.find();
 
         q.exec(function(err, results) {
-          console.log(results);
           locals.posts = results;
           next(err);
         });
       });
-
-      console.log(keystone);
 
       // Render the view
       view.render('addEvent');

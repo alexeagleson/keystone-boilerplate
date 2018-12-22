@@ -74,19 +74,19 @@ const app = appWithDB.express;
 app.use(allowCrossDomain);
 app.use(history());
 
-const http = require('http').Server(app);
-World.io = require('socket.io')(http);
+// const http = require('http').Server(app);
+// World.io = require('socket.io')(http);
 
-const port = process.env.PORT;
+// const port = process.env.PORT;
 
 app.use(cookieParser(cookieSecret));
 app.use(body.urlencoded({ extended: true }));
 app.use(body.json());
 app.use(multer({ dest: './uploads/' }).any());
 
-http.listen(port, () => {
-  console.log(`Listening on ${port}`);
-});
+// http.listen(port, () => {
+//   console.log(`Listening on ${port}`);
+// });
 
 process.on('SIGINT', () => {
   appWithDB.sql.pool.end(() => {
@@ -99,6 +99,26 @@ process.on('SIGINT', () => {
 keystone.set('routes', app);
 
 // keystone.set('routes', require('./routes'));
-keystone.start();
+// keystone.start();
 
-require('./game');
+
+
+keystone.start({
+  onHttpServerCreated : function() {
+
+    World.io = require('socket.io')(keystone.httpServer);
+    
+
+    // Attach session to incoming socket
+    World.io.use(function(socket, next) {
+      keystone.expressSession(socket.request, socket.request.res, next);
+    });
+
+    require('./game');
+
+  }
+});
+
+
+
+
